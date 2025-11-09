@@ -3,7 +3,7 @@ const http = require("http");
 const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
-
+const FRONTEND_ORIGIN = "3-wassignment-frontend.vercel.app";
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
 
@@ -13,11 +13,11 @@ const { Server } = require("socket.io");
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_ORIGIN || "*",
+    origin: FRONTEND_ORIGIN || "*",
     methods: ["GET", "POST"],
   },
 });
-console.log(process.env.MONGO_URI);
+
 // attach io to app so routes can emit
 app.set("io", io);
 
