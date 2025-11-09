@@ -3,7 +3,7 @@ const http = require("http");
 const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
-const FRONTEND_ORIGIN = "3-wassignment-frontend.vercel.app";
+
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
 
@@ -13,7 +13,7 @@ const { Server } = require("socket.io");
 
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_ORIGIN || "*",
+    origin: process.env.FRONTEND_ORIGIN || "*",
     methods: ["GET", "POST"],
   },
 });
@@ -26,7 +26,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => console.log("socket disconnected", socket.id));
 });
 
-app.use(cors({ origin: FRONTEND_ORIGIN || "*" }));
+app.use(cors({ origin: process.env.FRONTEND_ORIGIN || "*" }));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
