@@ -26,7 +26,7 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => console.log("socket disconnected", socket.id));
 });
 
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN || "*" }));
+app.use(cors({ origin: FRONTEND_ORIGIN || "*" }));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
