@@ -195,5 +195,56 @@ router.post("/:postId/comment", auth, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// DELETE post (only by author)
+router.delete("/:postId", auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    if (post.authorId.toString() !== req.user.id)
+      return res.status(403).json({ message: "Unauthorized" });
+
+    await post.deleteOne();
+
+    // Broadcast to all clients so feed updates in real-time
+    const io = req.app.get("io");
+    if (io) io.emit("post-deleted", req.params.postId);
+
+    res.json({ message: "Post deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// EDIT post (only by author)
+router.put("/:postId", auth, upload.single("image"), async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    if (post.authorId.toString() !== req.user.id)
+      return res.status(403).json({ message: "Unauthorized" });
+
+    // Optional: update text
+    if (req.body.content) post.content = req.body.content;
+
+    // Optional: replace image
+    if (req.file) {
+      const result = await uploadBufferToCloudinary(req.file.buffer);
+      post.image = result.secure_url;
+    }
+
+    await post.save();
+
+    const io = req.app.get("io");
+    if (io) io.emit("post-updated", post);
+
+    res.json(post);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 module.exports = router;

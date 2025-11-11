@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const auth = require("../middleware/auth");
 require("dotenv").config();
 
 // Signup
@@ -74,6 +75,32 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+// Get current user profile
+router.get("/me", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Update profile
+router.put("/me", auth, async (req, res) => {
+  try {
+    const { username, email } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (username) user.username = username;
+    if (email) user.email = email;
+
+    await user.save();
+    res.json({ message: "Profile updated", user });
+  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
